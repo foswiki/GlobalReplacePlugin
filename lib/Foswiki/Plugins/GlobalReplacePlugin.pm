@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2004-2006 Peter Thoeny, peter@thoeny.org
 #
-# For licensing info read LICENSE file in the TWiki root.
+# For licensing info read LICENSE file in the distribution root.
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -15,103 +15,38 @@
 # http://www.gnu.org/copyleft/gpl.html
 #
 # As per the GPL, removal of this notice is prohibited.
-#
-# =========================
-#
-# This is an empty TWiki plugin. Use it as a template
-# for your own plugins; see %SYSTEMWEB%.Plugins for details.
-#
-# Each plugin is a package that contains the subs:
-#
-#   initPlugin           ( $topic, $web, $user, $installWeb )
-#   commonTagsHandler    ( $text, $topic, $web )
-#   startRenderingHandler( $text, $web )
-#   outsidePREHandler    ( $text )
-#   insidePREHandler     ( $text )
-#   endRenderingHandler  ( $text )
-#
-# initPlugin is required, all other are optional.
-# For increased performance, all handlers except initPlugin are
-# disabled. To enable a handler remove the leading DISABLE_ from
-# the function name.
-#
-# NOTE: To interact with TWiki use the official TWiki functions
-# in the &TWiki::Func module. Do not reference any functions or
-# variables elsewhere in TWiki!!
 
+package Foswiki::Plugins::GlobalReplacePlugin;
 
-# =========================
-package TWiki::Plugins::GlobalReplacePlugin;
+use strict;
 
-# =========================
-use vars qw(
-        $web $topic $user $installWeb $VERSION $RELEASE $debug
-    );
+our $VERSION = '$Rev$';
+our $RELEASE = $VERSION;
+our $SHORTDESCRIPTION = "Global search and replace functionality across all topics in a web";
+our $NO_PREFS_IN_TOPIC = 1;
 
-# This should always be $Rev$ so that TWiki can determine the checked-in
-# status of the plugin. It is used by the build automation tools, so
-# you should leave it alone.
-$VERSION = '$Rev$';
+our $debug = 0;
 
-# This is a free-form string you can use to "name" your own plugin version.
-# It is *not* used by the build automation tools, but is reported as part
-# of the version number in PLUGINDESCRIPTIONS.
-$RELEASE = 'Dakar';
+sub initPlugin {
+    my ( $topic, $web, $user, $installWeb ) = @_;
 
-
-# =========================
-sub initPlugin
-{
-    ( $topic, $web, $user, $installWeb ) = @_;
-
-    # check for Plugins.pm versions
-    if( $TWiki::Plugins::VERSION < 1 ) {
-        &TWiki::Func::writeWarning( "Version mismatch between GlobalReplacePlugin and Plugins.pm" );
-        return 0;
-    }
-
-    # Get plugin debug flag
-    $debug = &TWiki::Func::getPreferencesFlag( "GLOBALREPLACEPLUGIN_DEBUG" );
-
-    # Plugin correctly initialized
-    &TWiki::Func::writeDebug( "- TWiki::Plugins::GlobalReplacePlugin::initPlugin( $web.$topic ) is OK" ) if $debug;
+    Foswiki::Func::registerTagHandler('GLOBALREPLACE', \&handleGlobalReplace);
 
     return 1;
 }
 
 # =========================
-sub commonTagsHandler
-{
-### my ( $text, $topic, $web ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
-
-    &TWiki::Func::writeDebug( "- GlobalReplacePlugin::commonTagsHandler( $_[2].$_[1] )" ) if $debug;
-
-    # This is the place to define customized tags and variables
-    # Called by sub handleCommonTags, after %INCLUDE:"..."%
-
-    # do custom extension rule, like for example:
-    # $_[0] =~ s/%XYZ%/&handleXyz()/geo;
-    # $_[0] =~ s/%XYZ{(.*?)}%/&handleXyz($1)/geo;
-
-    if( $_[0] =~ /%GLOBALREPLACE{/ ) {
-        $_[0] =~ s/%GLOBALREPLACE{(.*?)}%/handleGlobalReplace($1)/geo;
-    }
-
-}
-
-# =========================
-sub handleGlobalReplace
-{
-    my ( $theArgs ) = @_;
+sub handleGlobalReplace {
+    my ( $session, $params, $topic, $web ) = @_;
 
     # parameter func can be: search, replace
-    my $func = TWiki::Func::extractNameValuePair( $theArgs, "func" ) ||
+    my $func = $params->{func} ||
         return "%RED%Invalid page access.%ENDCOLOR% Please go to " .
                "GlobalSearchAndReplace to start your operation.";
-    my $param = TWiki::Func::extractNameValuePair( $theArgs, "param" ) || "";
-    my $replaceSearchString = handleDecode(TWiki::Func::extractNameValuePair( $theArgs, "rSearchString" )) || "";
-    my $replaceString = handleDecode(TWiki::Func::extractNameValuePair( $theArgs, "rString" )) || "";
-    my $caseSensitive = TWiki::Func::extractNameValuePair( $theArgs, "caseSensitive" ) || "yes";
+    my $param = $params->{param} || ""; # topic name
+    my $replaceSearchString = handleDecode($params->{rSearchString}) || "";
+    my $replaceString = handleDecode($params->{rString}) || "";
+    my $caseSensitive = $params->{caseSensitive} || "yes";
 
     #saved for Rob Hoffman's regular expression flag
     #$token = quotemeta( $token ) unless( $theRegex );
@@ -123,31 +58,15 @@ sub handleGlobalReplace
 
     # Only certain people can commit a global search and replace
     # untaint $user to get rid of the Insecure Dependency
-    my $_user = "";
-    if ( $user =~ /([\w]+)/ ) {
-        $_user = $1;
-    } else {
-        return "Invalid User";
-    }
 
-    my $prefsWeb   = &TWiki::Func::expandCommonVariables( "%SYSTEMWEB%", "Main" );
-    my $prefsTopic = &TWiki::Func::expandCommonVariables( "%WIKIPREFSTOPIC%", "Main" );
-    my $access = &TWiki::Func::checkAccessPermission("change",
-                                                     &TWiki::Func::userToWikiName($_user),
-                                                     "", $prefsTopic, $prefsWeb );
-
-    &TWiki::Func::writeDebug( "- GlobalReplacePlugin::handleGlobalReplace( " .
-                              "$func, $param, $replaceSearchString, " .
-                              "$replaceString, $caseSensitive )" ) if $debug ;
+    my $access = Foswiki::Func::isGroupMember($Foswiki::cfg{SuperAdminGroup});
 
     if ( $func =~ /check/i ) {
         return "installed";
 
-    } elsif ( $func =~ /search/i ) {
-
-        $param =~ /(.*)\.(.*)/;
-        $aWeb = $1;
-        $aTopic = $2;
+    } elsif ( $func =~ /search/i && $param =~ /(.*)\.(.*)/) {
+        $aWeb = $1 || '';
+        $aTopic = $2 || '';
         return "| [[$param][$aTopic]] | %RED% No =Replace Search String= " .
                " entered. %ENDCOLOR% ||\n"
             unless ( $replaceSearchString );
@@ -156,8 +75,8 @@ sub handleGlobalReplace
         my $after = "";
 
         return "| [[$param][$aTopic]] | %RED% Topic does not exist %ENDCOLOR% ||\n"
-            unless ( &TWiki::Func::topicExists( $aWeb, $aTopic ) );
-        $topicText = &TWiki::Func::readTopicText( $aWeb, $aTopic );
+            unless ( Foswiki::Func::topicExists( $aWeb, $aTopic ) );
+        $topicText = Foswiki::Func::readTopicText( $aWeb, $aTopic );
 
         my $count = 0;
         my $hit;
@@ -170,6 +89,7 @@ sub handleGlobalReplace
         my $fourth = "";
         # save a copy so that the capture can be reset for each match
         my $orgReplaceString = $replaceString;
+        my $lastPos;
 
         while (1) {
             # reseting variables that allow the user to capture
@@ -233,7 +153,7 @@ sub handleGlobalReplace
         my $temp = "";
         $temp = "<font size=\"-1\">- $count hits</font>" if( $count > 1 );
 
-        my( $lock, $tmp1, $tmp2 ) = &TWiki::Func::checkTopicEditLock( $aWeb, $aTopic );
+        my( $lock, $tmp1, $tmp2 ) = &Foswiki::Func::checkTopicEditLock( $aWeb, $aTopic );
         $tmp1 = ""; $tmp2 = ""; # suppress warnings
         if( $lock ) {
             $lock = "%RED%(LOCKED)%ENDCOLOR%";
@@ -245,8 +165,9 @@ sub handleGlobalReplace
 
     } elsif ( $func =~ /replace/i ) {
 
-        return "You are currently logged in as " . &TWiki::Func::userToWikiName($_user)
-               . ". %RED%Only Members of the Main." . $TWiki::superAdminGroup . " may save the changes "
+        return "You are currently logged in as " .
+          Foswiki::Func::userToWikiName($session->{user})
+               . ". %RED%Only Members of the Main." . $Foswiki::cfg{SuperAdminGroup} . " may save the changes "
                . "of a Global Search And Replace. %ENDCOLOR%"
             unless ($access);
 
@@ -262,7 +183,7 @@ sub handleGlobalReplace
         $replaceString =~ s/\\r/chr(13)/eg; # carriage return
 
         # getting checkbox parameters
-        my $cgi = &TWiki::Func::getCgiQuery();
+        my $cgi = &Foswiki::Func::getCgiQuery();
         if (! $cgi ) {
             return "";
         }
@@ -283,22 +204,24 @@ sub handleGlobalReplace
             $aWeb = $1;
             $aTopic = $2;
 
-            $topicText = &TWiki::Func::readTopicText( $aWeb, $aTopic );
+            $topicText = &Foswiki::Func::readTopicText( $aWeb, $aTopic );
 
             # reset counters
             $count = 1;
             $replaced = 0;
             if ( $caseSensitive =~ /yes/i ) {
-                $topicText =~ s/($replaceSearchString)/doReplace( $1, $2, $3, $4, $5,
-                                                                   $replaceString,
-                                                                   \$count, \@topicList,
-                                                                   $aTopic, \$replaced )/geos;
+                $topicText =~ s/($replaceSearchString)/
+                  doReplace( $1, $2, $3, $4, $5,
+                             $replaceString,
+                             \$count, \@topicList,
+                             $aTopic, \$replaced )/geos;
 
             } else {
-                $topicText =~ s/($replaceSearchString)/doReplace( $1, $2, $3, $4, $5,
-                                                                   $replaceString,
-                                                                   \$count, \@topicList,
-                                                                   $aTopic, \$replaced )/igeos;
+                $topicText =~ s/($replaceSearchString)/
+                  doReplace( $1, $2, $3, $4, $5,
+                             $replaceString,
+                             \$count, \@topicList,
+                             $aTopic, \$replaced )/igeos;
             }
             $displayTopicText = escapeSpecialChars( $topicText );
             $text .= "| [[$key][$aTopic]] | $replaced";
@@ -306,8 +229,8 @@ sub handleGlobalReplace
             $text .= " |\n";
 
             # Save changes to text here
-            &TWiki::Func::writeDebug( "GlobalReplacePlugin::saving") if ( $debug );
-            TWiki::Func::saveTopicText( $aWeb, $aTopic, $topicText );
+            &Foswiki::Func::writeDebug( "GlobalReplacePlugin::saving") if ( $debug );
+            Foswiki::Func::saveTopicText( $aWeb, $aTopic, $topicText );
         }
         if ( $text ) {
             $text = "| *Topic* | *Number of Replacements* |\n" . $text;
@@ -321,12 +244,11 @@ sub handleGlobalReplace
 }
 
 # =========================
-sub doReplace
-{
+sub doReplace {
     my ( $hit, $first, $second, $third, $fourth, $replace, $count, $topicList, $topic, $replaced ) = @_;
 
     my ( $flag ) = grep { /.*\_$topic\_$$count/ } @$topicList;
-    &TWiki::Func::writeDebug( "- GlobalReplacePlugin::doReplace($hit, $replace, "
+    &Foswiki::Func::writeDebug( "- GlobalReplacePlugin::doReplace($hit, $replace, "
                               . $$count . ", $topic, $flag, )" ) if $debug;
     $first = "" unless ($first);
     $second = "" unless ($second);
@@ -353,8 +275,7 @@ sub doReplace
 }
 
 # =========================
-sub escapeSpecialChars
-{
+sub escapeSpecialChars {
     my ( $string ) = @_;
 
     $string =~ s/\&/&amp;/go;
@@ -382,9 +303,9 @@ sub escapeSpecialChars
 }
 
 # =========================
-sub handleDecode
-{
+sub handleDecode {
     my( $theStr ) = @_;
+    $theStr ||= '';
 
     # entity decode - Cairo: &#34;, Dakar: &#034;
     $theStr =~ s/\&\#34;/\"/g;

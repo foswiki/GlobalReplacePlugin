@@ -1,0 +1,6 @@
+data/System/GlobalReplacePlugin.txt NEW
+data/System/GlobalSearchAndReplace.txt NEW
+data/System/GlobalSearchAndReplaceHelp.txt NEW
+data/System/GlobalSearchAndReplaceTopics.txt NEW
+lib/Foswiki/Plugins/GlobalReplacePlugin.pm NEW
+pub/System/GlobalSearchAndReplaceHelp/GSR.gif NEW

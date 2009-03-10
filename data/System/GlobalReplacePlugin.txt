@@ -1,0 +1,67 @@
+---+!! Global Replace Plugin
+
+%TOC%
+
+The Global Replace Plugin is designed to:
+
+   1 Search through topics with user supplied criteria
+   1 Find strings within the topics found
+   1 Provide a mechanism to pick and choose which hits will be replaced
+   1 Replace the hit with a user supplied expressions
+
+Please go to GlobalSearchAndReplace to perform a global replace operation.
+
+---++ Plugin Settings
+
+Plugin settings are stored as preferences variables. To reference a plugin setting write ==%<nop>&lt;plugin&gt;_&lt;setting&gt;%==, i.e. ==%<nop>GLOBALREPLACEPLUGIN_SHORTDESCRIPTION%==
+
+   * One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
+      * Set SHORTDESCRIPTION = Global search and replace functionality across all topics in a web
+
+---++ Examples
+
+---+++ Example 1: Changing a string
+
+   1 Click Edit from a page
+   1 Copy the string you want to change to the "Replace search string" field. This is the field you want to replace.
+   1 Select web and a search string ( Sandbox, =TestTopic= ) 
+   1 Replace any other non-numeric and non-alphabetic =[character]= with =[\character]=,  e.g. =[}]= with =[\}]=. This applies to "Replace search string" field only.
+      * E.g. \%EDITCELL\{checkbox, 3, Input data exchange, ... \}\%
+   1 Copy-paste the string to the "Replace string" field and modify it as you choose
+   1 Press the "Search"-button and verify that the replaced and replacing strings are as expected
+   1 Set all the checkboxes of the strings you want to replace. You can also select "Set all"
+   1 Click "Replace all check-marked hits"
+
+---+++ Example 2: Inserting a line _under_ another line
+   1 Follow the previous example to the point where "Replace search string" is inserted
+   1 Use =[(\n)]= in the "Replace search string", at the end of the line. This will be stored for use in the "Replace string". You can reference it by =[$x]=, where =[x]= is a number =1-9=.
+      * E.g. We want to replace a line which _ends to_ a string =[Shutdown}% |]=. "Replace search string": =Shutdown\}\% \|(\n)= and "Replace string": =Shutdown}% |$1Something$1asdf$1=
+   * *Note:* Using this trick you can also insert a line _before_ another line, by writing:
+      * E.g. We want to insert a line before another line, which _begins with_ a string =[| *Keywords:* |]=. "Replace search string": =\| \*Keywords\:\* \|(.*?)(\n)= and "Replace string": =Something $2| *Keywords: |$1$2=
+      * E.g. We want to replace a line which _begins with_ a string =[| *Keywords:* |]= and _ends with_ or _contains_ the string =[Interrupt}%]=. "Replace search string": =\| \*Keywords\:\* \|(.*?)Interrupt\}\%(.*?)(\n)= and "Replace string": =Something $3| *Keywords: |$1Interrupt}%$2$3=
+
+---++ Known Issues
+
+   * This Plugin ignores locks, it writes over locked topics
+   * This Plugin is potentially dangerous. Security measures:
+      1 The operations of this Plugin is restricted to the group which can edit the %SYSTEMWEB%.%WIKIPREFSTOPIC% (usually %MAINWEB%.AdminGroup)
+      1 For public sites, it is recommended to enable this Plugin only for the short time when needed (it is installed if the following variable shows "installed": %GLOBALREPLACE{func="check"}%)
+   * This Plugin has been tested. However, it does not have ANY WARRANTY, does not even have the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
+
+---++ Plugin Installation Instructions
+%$INSTALL_INSTRUCTIONS%
+
+---++ Plugin Info
+
+|  Plugin Author: | Foswiki:Main.PaulineCheung |
+|  Plugin Version: | %$VERSION% |
+|  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  10 Mar 2009: | Crawford Currie ported to Foswiki namespace |
+|  31 Oct 2005: | Mikko Laakso: Added some examples, tested on W2K. |
+|  03 Nov 2004: | Peter Thoeny: Added $topic to replace string |
+|  16 Mar 2004: | Fixed bug where topics with underlines did not get handled properly |
+|  07 Feb 2004: | Initial version |
+|  Dependencies: | %$DEPENDENCIES% |
+|  Other Dependencies: | Foswiki:Extensions.SpreadSheetPlugin |
+|  Perl Version: | 5.005 |
+|  Plugin Home: | http://foswiki.org/Extensions/%TOPIC% |
