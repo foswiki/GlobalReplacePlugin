@@ -1,6 +1,10 @@
-data/System/GlobalReplacePlugin.txt NEW
-data/System/GlobalSearchAndReplace.txt NEW
-data/System/GlobalSearchAndReplaceHelp.txt NEW
-data/System/GlobalSearchAndReplaceTopics.txt NEW
-lib/Foswiki/Plugins/GlobalReplacePlugin.pm NEW
-pub/System/GlobalSearchAndReplaceHelp/GSR.gif NEW
+!noci
+data/System/GlobalReplacePlugin.txt 0644
+data/System/GlobalSearchAndReplaceHelp.txt 0644
+data/System/GlobalSearchAndReplaceTopics.txt 0644
+data/System/GlobalSearchAndReplace.txt 0644
+lib/Foswiki/Plugins/GlobalReplacePlugin/Core.pm 0644
+lib/Foswiki/Plugins/GlobalReplacePlugin/DEPENDENCIES 0644
+lib/Foswiki/Plugins/GlobalReplacePlugin/MANIFEST 0644
+lib/Foswiki/Plugins/GlobalReplacePlugin.pm 0644
+pub/System/GlobalSearchAndReplaceHelp/GSR.gif 0644

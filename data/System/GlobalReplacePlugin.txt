@@ -1,4 +1,6 @@
+%META:TOPICINFO{author="ProjectContributor" date="1737644628" format="1.1" version="1"}%
 ---+!! Global Replace Plugin
+%FORMFIELD{"Description"}%
 
 %TOC%
 
@@ -10,13 +12,6 @@ The Global Replace Plugin is designed to:
    1 Replace the hit with a user supplied expressions
 
 Please go to GlobalSearchAndReplace to perform a global replace operation.
-
----++ Plugin Settings
-
-Plugin settings are stored as preferences variables. To reference a plugin setting write ==%<nop>&lt;plugin&gt;_&lt;setting&gt;%==, i.e. ==%<nop>GLOBALREPLACEPLUGIN_SHORTDESCRIPTION%==
-
-   * One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
-      * Set SHORTDESCRIPTION = Global search and replace functionality across all topics in a web
 
 ---++ Examples
 
@@ -48,20 +43,27 @@ Plugin settings are stored as preferences variables. To reference a plugin setti
       1 For public sites, it is recommended to enable this Plugin only for the short time when needed (it is installed if the following variable shows "installed": %GLOBALREPLACE{func="check"}%)
    * This Plugin has been tested. However, it does not have ANY WARRANTY, does not even have the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 
----++ Plugin Installation Instructions
+---++ Installation Instructions
 %$INSTALL_INSTRUCTIONS%
 
----++ Plugin Info
+---++ Dependencies
+%$DEPENDENCIES%
 
-|  Plugin Author: | Foswiki:Main.PaulineCheung |
-|  Plugin Version: | %$VERSION% |
-|  Change History: | <!-- versions below in reverse order -->&nbsp; |
+---++ Change History
+|  23 Jan 2025: | ooified core functionality; fixed documentation; improved web forms; removed deprecated calls to =saveTopicText= and =readTopicText= |
 |  10 Mar 2009: | Crawford Currie ported to Foswiki namespace |
-|  31 Oct 2005: | Mikko Laakso: Added some examples, tested on W2K. |
+|  31 Oct 2005: | Mikko Laakso: Added some examples, tested on !W2K. |
 |  03 Nov 2004: | Peter Thoeny: Added $topic to replace string |
 |  16 Mar 2004: | Fixed bug where topics with underlines did not get handled properly |
 |  07 Feb 2004: | Initial version |
-|  Dependencies: | %$DEPENDENCIES% |
-|  Other Dependencies: | Foswiki:Extensions.SpreadSheetPlugin |
-|  Perl Version: | 5.005 |
-|  Plugin Home: | http://foswiki.org/Extensions/%TOPIC% |
+
+%META:FORM{name="PackageForm"}%
+%META:FIELD{name="Author" title="Author" value="Pauline Cheung"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2004-2025 Foswiki Contributors"}%
+%META:FIELD{name="Description" title="Description" value="Global search and replace functionality across all topics in a web"}%
+%META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%TOPIC%"}%
+%META:FIELD{name="License" title="License" value=""}%
+%META:FIELD{name="Release" title="Release" value="%$RELEASE%"}%
+%META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%TOPIC%"}%
+%META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%TOPIC%"}%
+%META:FIELD{name="Version" title="Version" value="%$VERSION%"}%
