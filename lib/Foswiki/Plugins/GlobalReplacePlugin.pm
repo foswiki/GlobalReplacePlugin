@@ -22,7 +22,7 @@ package Foswiki::Plugins::GlobalReplacePlugin;
 use strict;
 use warnings;
 
-our $VERSION = '2.10';
+our $VERSION = '3.00';
 our $RELEASE = '%$RELEASE%';
 our $SHORTDESCRIPTION = "Global search and replace functionality across all topics in a web";
 our $NO_PREFS_IN_TOPIC = 1;
